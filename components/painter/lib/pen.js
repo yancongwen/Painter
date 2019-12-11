@@ -8,6 +8,19 @@ export default class Painter {
     this.globalWidth = {};
     this.globalHeight = {};
   }
+  getViewHeightById(id) {
+    let height = 0
+    this.data.views.forEach(view => {
+      if (id === view.id) {
+        if (view.height) {
+          height = view.height.toPx()
+        } else {
+          height = this._getViewHeight(view)
+        }
+      }
+    })
+    return height
+  }
 
   paint(callback) {
     this.style = {
@@ -546,5 +559,76 @@ export default class Painter {
 
   _getAngle(angle) {
     return Number(angle) * Math.PI / 180;
+  }
+
+  _getViewHeight(view) {
+    let width = 0;
+    let height;
+    switch (view.type) {
+      case 'text': {
+        const textArray = view.text.split('\n');
+        // 处理多个连续的'\n'
+        for (let i = 0; i < textArray.length; ++i) {
+          if (textArray[i] === '') {
+            textArray[i] = ' ';
+          }
+        }
+        const fontWeight = view.css.fontWeight === 'bold' ? 'bold' : 'normal';
+        view.css.fontSize = view.css.fontSize ? view.css.fontSize : '20rpx';
+        this.ctx.font = `normal ${fontWeight} ${view.css.fontSize.toPx()}px ${view.css.fontFamily ? view.css.fontFamily : 'sans-serif'}`;
+        // this.ctx.setFontSize(view.css.fontSize.toPx());
+        // 计算行数
+        let lines = 0;
+        const linesArray = [];
+        for (let i = 0; i < textArray.length; ++i) {
+          const textLength = this.ctx.measureText(textArray[i]).width;
+          const partWidth = view.css.width ? view.css.width.toPx() : textLength;
+          const calLines = Math.ceil(textLength / partWidth);
+          width = partWidth > width ? partWidth : width;
+          lines += calLines;
+          linesArray[i] = calLines;
+        }
+        lines = view.css.maxLines < lines ? view.css.maxLines : lines;
+        const lineHeight = view.css.lineHeight ? view.css.lineHeight.toPx() : view.css.fontSize.toPx();
+        height = lineHeight * lines;
+        break;
+      }
+      case 'image': {
+        // image的长宽设置成auto的逻辑处理
+        const ratio = getApp().systemInfo.pixelRatio ? getApp().systemInfo.pixelRatio : 2;
+        // 有css却未设置width或height，则默认为auto
+        if (view.css) {
+          if (!view.css.width) {
+            view.css.width = 'auto';
+          }
+          if (!view.css.height) {
+            view.css.height = 'auto';
+          }
+        }
+        if (!view.css || (view.css.width === 'auto' && view.css.height === 'auto')) {
+          width = Math.round(view.sWidth / ratio);
+          height = Math.round(view.sHeight / ratio);
+        } else if (view.css.width === 'auto') {
+          height = view.css.height.toPx();
+          width = view.sWidth / view.sHeight * height;
+        } else if (view.css.height === 'auto') {
+          width = view.css.width.toPx();
+          height = view.sHeight / view.sWidth * width;
+        } else {
+          width = view.css.width.toPx();
+          height = view.css.height.toPx();
+        }
+        break;
+      }
+      default:
+        if (!(view.css.width && view.css.height)) {
+          console.error('You should set width and height');
+          return;
+        }
+        width = view.css.width.toPx();
+        height = view.css.height.toPx();
+        break;
+    }
+    return height
   }
 }

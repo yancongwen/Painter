@@ -89,6 +89,9 @@ Component({
           height
         } = palette;
         
+        const ctx = wx.createCanvasContext('k-canvas', this);
+        const pen = new Pen(ctx, palette);
+
         if (!width || !height) {
           console.error(`You should set width and height correctly for painter, width: ${width}, height: ${height}`);
           return;
@@ -99,13 +102,22 @@ Component({
           setStringPrototype(screenK, this.properties.widthPixels / this.canvasWidthInPx)
           this.canvasWidthInPx = this.properties.widthPixels
         }
-  
-        this.canvasHeightInPx = height.toPx();
+        // canvas 高度自适应，根据文本或者图片高度自动撑开
+        if (Array.isArray(height)) {
+          this.canvasHeightInPx = height[0].toPx();
+          height.forEach((id, index) => {
+            if (index > 0) {
+              this.canvasHeightInPx += pen.getViewHeightById(id);
+            }
+          })
+        } else {
+          this.canvasHeightInPx = height.toPx();
+        }
+        palette.height = this.canvasHeightInPx + 'px'
         this.setData({
           painterStyle: `width:${this.canvasWidthInPx}px;height:${this.canvasHeightInPx}px;`,
         });
-        const ctx = wx.createCanvasContext('k-canvas', this);
-        const pen = new Pen(ctx, palette);
+
         pen.paint(() => {
           this.saveImgToLocal();
         });
