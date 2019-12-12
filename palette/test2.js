@@ -2,14 +2,14 @@ export default class ImageExample {
     palette() {
         return {
             width: '610rpx',
-            height: ['200rpx', 'main-image'],
+            height: ['80rpx', 'main-image', 'text'],
             borderRadius: '22rpx',
             background: '#f5f5f6',
             views: [
                 {
                     type: 'image',
                     id: 'main-image',
-                    url: data.image2,
+                    url: data.image4,
                     css: {
                         width: '540rpx',
                         left: '35rpx',
@@ -19,15 +19,17 @@ export default class ImageExample {
                 },
                 {
                     type: 'text',
+                    id: 'text',
                     name: '描述',
                     text: data.description,
                     css: {
                         fontSize: '24rpx',
+                        lineHeight: '36rpx',
                         color: '#000',
-                        top: '0rpx',
+                        top: ['35rpx', 'main-image'],
                         left: '30rpx',
                         width: '520rpx',
-                        maxLines: 1
+                        maxLines: 3
                     }
                 }
             ]
