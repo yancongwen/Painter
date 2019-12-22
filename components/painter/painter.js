@@ -82,6 +82,7 @@ Component({
       }
       let screenK = getApp().systemInfo.screenWidth / 750;
       setStringPrototype(screenK, 1);
+      setNumberPrototype(screenK, 1);
       
       this.downloadImages().then((palette) => {
         const {
@@ -100,6 +101,7 @@ Component({
         if (this.properties.widthPixels) {
           // 如果重新设置过像素宽度，则重新设置比例
           setStringPrototype(screenK, this.properties.widthPixels / this.canvasWidthInPx)
+          setNumberPrototype(screenK, this.properties.widthPixels / this.canvasWidthInPx)
           this.canvasWidthInPx = this.properties.widthPixels
         }
         // canvas 高度自适应，根据文本或者图片高度自动撑开
@@ -268,5 +270,12 @@ function setStringPrototype(screenK, scale) {
       res = Math.round(value * (scale || 1));
     }
     return res;
+  };
+}
+
+function setNumberPrototype(screenK, scale) {
+  // 支持直接使用数字表示长度，因为设计稿大部分都是以750rpx的iphone6为基准设计的，因此使用数字时，默认单位为rpx
+  Number.prototype.toPx = function() {
+    return Math.round(this * screenK * (scale || 1));
   };
 }
